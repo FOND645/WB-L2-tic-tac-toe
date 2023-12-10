@@ -36,9 +36,13 @@ class Game {
 
     getAImove() {
         // ИИ всегда играет за ноликов
-        const miniMax = (F, turn, upper) => {
+        const miniMax = (F, turn, RL) => {
+            RL = RL ? RL : 1;
             const terminate = this.isTerminate(F);
-            if (terminate) return terminate === "circle" ? 1 : -10;
+            if (terminate) {
+                if (RL === 3) return -1000;
+                return terminate === "circle" ? 1 : -10;
+            }
             let emptyIndexes = [];
             F.forEach((El, ind) => {
                 if (!El) emptyIndexes.push(ind);
@@ -47,18 +51,20 @@ class Game {
                 let newF = [...F];
                 newF[Ind] = turn === "circle" ? "circle" : "cross";
                 const newTurn = turn === "circle" ? "cross" : "circle";
-                return miniMax(newF, newTurn, false);
+                return miniMax(newF, newTurn, RL + 1);
             });
-            if (upper) {
+            if (RL === 1) {
                 const max = Math.max(...turns);
                 const maxIndex = turns.findIndex((El) => El === max);
+                console.log(emptyIndexes);
+                console.log(turns);
                 return emptyIndexes[maxIndex];
             } else {
                 return turns.reduce((acc, Val) => (acc += Val), 0);
             }
         };
 
-        const turn = miniMax(this.getFieldArray(), "circle", true);
+        const turn = miniMax(this.getFieldArray(), "circle");
         const x = (turn % 3) + 1;
         const y = Math.trunc(turn / 3) + 1;
         const cell = this.field[`${x}:${y}`];
